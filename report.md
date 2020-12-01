@@ -1,4 +1,45 @@
-# Report Project Mines ML 2020
+# Report Project Mines ML 2020 -  Apply DL model for Traffic Volume prediction
+
+Author: Hiba Najjar
+
+## Overview
+ To fill later
+
+## Data exploration
+
+([Link](https://www.kaggle.com/vinayshanbhag/radar-traffic-data) to the Kaggle Dataset of *Radar Traffic Data*)
+
+We'll be working on a dataframe of **12** columns and **4.6M** records.
+
+-  3 location columns: location name, longitude and latitude, with 18 different locations in total;
+- 7 date columns: Year, Month, Day, Day of the Week, Hour, Minute and Time. No missing value was detected in these columns.
+ <img src='/Figures/Histogramms.png'>
+ 
+- a column for the directions, (SB, NB, EB, WB), with 5.6% of missing values: 
+
+|    SB   |    NB   |   EB   |   WB   |  NaN  |
+|:-------:|:-------:|:------:|:------:|:------:|
+| 2 035 591 | 1 714 696 | 328 580 | 262 926 | 262 068 |
+
+- and finally the Volume column, or number of vehicles detected by the sensor, in the last 15 minutes:
+
+|   count   |    mean   |    std    | min |  25% |  50% |  75%  |  max  |
+|:---------:|:---------:|:---------:|:---:|:----:|:----:|:-----:|:-----:|
+| 4 603 861 | 71.17 | 63.70 | 0 | 13 | 56 | 115 | 255 |
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Template
 
 Authors: John Doo and Marie Curie
 
