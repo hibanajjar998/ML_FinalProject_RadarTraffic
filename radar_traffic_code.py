@@ -5,7 +5,7 @@
 ###################################################################
 import pandas as pd
 import os
-
+import seaborn as sns
 
 
 
@@ -56,20 +56,23 @@ data.Volume.describe().to_frame().transpose()
 
 
 ###################################################################
-# 
+# Predictors Selection
 ###################################################################
 
+# Heat Correlation matrix
+ax = sns.heatmap(data.corr(), linewidth=0.5)
 
+# Boxplots: Volume-Date
+ax = sns.boxplot(x="Year", y="Volume", data=data)
+ax = sns.boxplot(x="Hour", y="Volume", data=data)
+ax = sns.boxplot(x="Day", y="Volume", data=data)
+ax = sns.boxplot(x="Day of Week", y="Volume", data=data)
 
-
-
-
-
-
-
-
-
-
+# Boxplots: Volume-Location
+ax = sns.boxplot(x="Direction", y="Volume", data=data)
+ax = sns.boxplot(y="location_name", x="Volume", data=data, orient="h")
+ax = sns.boxplot(y="location_longitude", x="Volume", data=data, orient="h")
+ax = sns.boxplot(y="location_latitude", x="Volume", data=data, orient="h")
 
 
 ###################################################################
