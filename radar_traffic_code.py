@@ -4,8 +4,10 @@
 # IMPORT LIBRARIES
 ###################################################################
 import pandas as pd
+import numpy as np
 import os
 import seaborn as sns
+from sklearn import preprocessing
 
 
 
@@ -69,11 +71,29 @@ ax = sns.boxplot(x="Day", y="Volume", data=data)
 ax = sns.boxplot(x="Day of Week", y="Volume", data=data)
 
 # Boxplots: Volume-Location
+data.location_latitude = data.location_latitude.apply(lambda x: round(x,3))
+data.location_longitude = data.location_longitude.apply(lambda x: round(x,3))
 ax = sns.boxplot(x="Direction", y="Volume", data=data)
 ax = sns.boxplot(y="location_name", x="Volume", data=data, orient="h")
 ax = sns.boxplot(y="location_longitude", x="Volume", data=data, orient="h")
 ax = sns.boxplot(y="location_latitude", x="Volume", data=data, orient="h")
 
+
+# Normalize longitude and latitude variables:
+min_max_scaler = preprocessing.MinMaxScaler()
+
+def normalize(df, column):
+    x = df[column].values
+    x = np.reshape(x, (-1,1))
+    x = min_max_scaler.fit_transform(x)
+    df[column] = pd.Series(np.reshape(x, (-1)))
+    return df
+
+data = normalize( data, "location_latitude")
+data = normalize( data, "location_latitude")
+
+# drop columns we won't use for prediction: 
+data = data.drop(['Year', 'location_name', 'Day'], axis=1)
 
 ###################################################################
 # 
