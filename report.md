@@ -28,6 +28,18 @@ We'll be working on a dataframe of **12** columns and **4.6M** records.
 | 4 603 861 | 71.17 | 63.70 | 0 | 13 | 56 | 115 | 255 |
 
 
+## Predictors Selection
+
+Not all the columns we have in our original dataset are necessarly useful for our Volume Prediction task. Therefore, we will first look into correlation between variables, and then examine boxplot  of Volume values grouped by all categorical variables:  
+
+<img src="/Figures/corr_matrix.png">
+
+<img src="/Figures/boxplots.png">
+
+$\rightarrow$ Looking at Volume-Date boxplots, it would be reasonable to only keep `Hour`, `Month` and `Day of Week` predictors, and for the location variables, we'll use `location_longitude` and `location_latitude` as quantitative variables, which we'll also normalise, to make use of potential correlation between volumes of close locations.
+
+
+
 
 
 
