@@ -28,6 +28,15 @@ We'll be working on a dataframe of **12** columns and **4.6M** records.
 | 4 603 861 | 71.17 | 63.70 | 0 | 13 | 56 | 115 | 255 |
 
 
+
+## Can we use PCA to fill missing Direction values ?
+Inspired by this [article](https://towardsdatascience.com/pca-using-python-scikit-learn-e653f8989e60), we will use PCA to reduce dimension of our data and draw scatter plots on the two principal components of our records, using the `Direction` variable as a color factor :
+
+<img src="/Figures/PCA.png">
+
+The results show that this approach may not be the best to impute the missing values. Other methods can solve this problematic, but for the rest of this projet we will simply drop records with missing values.
+
+
 ## Predictors Selection
 
 Not all the columns we have in our original dataset are necessarly useful for our Volume Prediction task. Therefore, we will first look into correlation between variables, and then examine boxplot  of Volume values grouped by all categorical variables:  
