@@ -21,7 +21,6 @@ from sklearn import preprocessing
 os.chdir('C:\\Users\\hiban\\Desktop\\MN S9\\Machine Learning 3A\\final project\\ML_FinalProject_RadarTraffic')
 data = pd.read_csv("Radar_Traffic_Counts.csv") 
 data.shape
-sample = data.sample(frac=0.01, random_state=1)
 
 
 # Do we have nan values?
@@ -57,9 +56,71 @@ data.Hour.plot.hist(bins=24)
 data.Volume.describe().to_frame().transpose()
 
 
+
+
+
+
+
+###################################################################
+# can PCA help fill missing Direction values ?
+###################################################################
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+
+# extract a sample (10%) of our data:
+data = pd.read_csv("Radar_Traffic_Counts.csv") 
+data.Direction.replace("None", float('nan'), inplace=True)
+df = data.sample(frac=0.01, random_state=1)
+
+# Separating out the features
+features = [ 'location_latitude','location_longitude','Year', 'Month', 'Day','Day of Week', 'Hour', 'Minute', 'Volume']
+x = df.loc[:, features].values
+
+# Separating out the target
+y = df.loc[:,['Direction']].values
+
+# Standardizing the features
+x = StandardScaler().fit_transform(x)
+
+# apply PCA
+pca = PCA(n_components=5)
+principalComponents = pca.fit_transform(x)
+principalDf = pd.DataFrame(data = principalComponents , columns = ['PC1', 'PC2', 'PC3', 'PC4', 'PC5'])
+finalDf = pd.concat([principalDf, df[['Direction']]], axis = 1)
+
+# plot a two dimensions projection
+fig = plt.figure(figsize = (8,8))
+ax = fig.add_subplot(1,1,1) 
+ax.set_xlabel('Principal Component 1', fontsize = 15)
+ax.set_ylabel('Principal Component 2', fontsize = 15)
+ax.set_title('2 component PCA', fontsize = 20)
+targets = ['NB', 'SB', 'EB', 'WB']
+colors = ['r', 'g', 'b','y']
+for target, color in zip(targets,colors):
+    indicesToKeep = finalDf['Direction'] == target
+    ax.scatter(finalDf.loc[indicesToKeep, 'PC1'], finalDf.loc[indicesToKeep, 'PC2'], c = color , s = 50)
+ax.legend(targets)
+ax.grid()
+
+# explained variance
+pca.explained_variance_ratio_
+
+# drop records with missing Direction value:
+data.dropna(inplace=True)
+
+
+
+
 ###################################################################
 # Predictors Selection
 ###################################################################
+
+data = pd.read_csv("Radar_Traffic_Counts.csv") 
+data.Direction.replace("None", float('nan'), inplace=True)
+data.dropna(inplace=True)
 
 # Heat Correlation matrix
 ax = sns.heatmap(data.corr(), linewidth=0.5)
@@ -94,22 +155,7 @@ data = normalize( data, "location_latitude")
 
 # drop columns we won't use for prediction: 
 data = data.drop(['Year', 'location_name', 'Day'], axis=1)
-
-###################################################################
-# 
-###################################################################
-
-
-
-
-
-
-
-
-
-
-
-
+sample = data.sample(frac=0.01, random_state=1)
 
 
 ###################################################################
@@ -117,6 +163,18 @@ data = data.drop(['Year', 'location_name', 'Day'], axis=1)
 ###################################################################
 
 
+
+
+ax = sns.boxplot(x="Direction", y="Volume", data=data)
+ax = sns.boxplot(x="Direction", y="location_latitude", data=data)
+ax = sns.boxplot(x="Direction", y="location_longitude", data=data)
+ax = sns.boxplot(x="Direction", y="Year", data=data)
+ax = sns.boxplot(x="Direction", y="Month", data=data)
+ax = sns.boxplot(x="Direction", y="Day", data=data)
+ax = sns.boxplot(x="Direction", y="Day of Week", data=data)
+ax = sns.boxplot(x="Direction", y="Hour", data=data)
+ax = sns.boxplot(x="Direction", y="Minute", data=data)
+ax = sns.boxplot(x="Direction", y="Time Bin", data=data)
 
 
 
