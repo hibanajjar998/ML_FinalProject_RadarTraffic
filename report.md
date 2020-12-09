@@ -45,7 +45,14 @@ Not all the columns we have in our original dataset are necessarly useful for ou
 
 <img src="/Figures/boxplots.png">
 
-$\rightarrow$ Looking at Volume-Date boxplots, it would be reasonable to only keep `Hour`, `Month` and `Day of Week` predictors, and for the location variables, we'll use `location_longitude` and `location_latitude` as quantitative variables, which we'll also normalise, to make use of potential correlation between volumes of close locations.
+Looking at **Volume-Date** boxplots, it would be reasonable to only keep `Hour`, `Month` and `Day of Week` predictors, and for the **Location** variables, we'll use `location_name` only. We will also update the value of `Minute` using the the `Time Bin` variable before we get ride off it.
+
+Therefore, our data will be composed of the following categorical variables:
+|       Varibale       | Location Name | Direction | Month | Day of the Week | Hour | Minute |
+|:--------------------:|:-------------:|:---------:|:-----:|:---------------:|:----:|:------:|
+| Number of categories |       16      |     4     |   12  |        7        |  24  |    4   |
+
+Categorical variables will be divided into batches under an approriate representation ( stack of one-hot vector per categorical variable) for the training and test steps.
 
 
 

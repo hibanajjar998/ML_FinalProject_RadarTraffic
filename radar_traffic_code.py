@@ -141,54 +141,64 @@ ax = sns.boxplot(y="location_latitude", x="Volume", data=data, orient="h")
 
 
 # Normalize longitude and latitude variables:
-min_max_scaler = preprocessing.MinMaxScaler()
+min_max_scaler = preprocessing.minmax_scale(feature_range=(-1, 1))
 
 def normalize(df, column):
     x = df[column].values
     x = np.reshape(x, (-1,1))
-    x = min_max_scaler.fit_transform(x)
+    x = preprocessing.minmax_scale(x,feature_range=(-1, 1))
     df[column] = pd.Series(np.reshape(x, (-1)))
     return df
 
 data = normalize( data, "location_latitude")
-data = normalize( data, "location_latitude")
+data = normalize( data, "location_longitude")
 
 # drop columns we won't use for prediction: 
 data = data.drop(['Year', 'location_name', 'Day'], axis=1)
-sample = data.sample(frac=0.01, random_state=1)
-
-
-###################################################################
-# 
-###################################################################
-
-
-
-
-ax = sns.boxplot(x="Direction", y="Volume", data=data)
-ax = sns.boxplot(x="Direction", y="location_latitude", data=data)
-ax = sns.boxplot(x="Direction", y="location_longitude", data=data)
-ax = sns.boxplot(x="Direction", y="Year", data=data)
-ax = sns.boxplot(x="Direction", y="Month", data=data)
-ax = sns.boxplot(x="Direction", y="Day", data=data)
-ax = sns.boxplot(x="Direction", y="Day of Week", data=data)
-ax = sns.boxplot(x="Direction", y="Hour", data=data)
-ax = sns.boxplot(x="Direction", y="Minute", data=data)
-ax = sns.boxplot(x="Direction", y="Time Bin", data=data)
-
-
-
-
-
-
-
 
 
 
 
 
 ###################################################################
-# 
+# Full pre-processing
+###################################################################
+
+data = pd.read_csv("Radar_Traffic_Counts.csv") 
+
+# drop records with missing direction:
+data.Direction.replace("None", float('nan'), inplace=True)
+data.dropna(inplace=True)
+
+# remove useless leading and trailing whitespaces from the location_name
+data.location_name = data.location_name.apply(lambda x: x.strip()) 
+
+# correct the Minute variable using the Time Bin variable, to have all values in {0,15,30,45}
+data.Minute = data['Time Bin'].apply(lambda x: int(x[3:]))
+
+# drop columns we won't use for prediction: 
+data = data.drop(['Year', 'location_latitude', 'location_longitude','Time Bin', 'Day'], axis=1)
+data = data.astype(str)
+
+# map location names to letters (for simplification) 
+loc_letter, letter_loc = dict(), dict()
+letters = 'ABCDEFGHIJKLMNOP'
+names = data.location_name.unique()
+for i in range(16):
+    loc_letter[names[i]] = letters[i]
+    letter_loc[letters[i]] = names[i]
+data.location_name = data.location_name.apply(lambda x: loc_letter[x])
+
+# the following function encode a dataframe batch into a one-hot representation matrix
+def onehot_batch(df):
+    one_hot_df = pd.get_dummies(df)
+    one_hot_arrays = one_hot_df.to_numpy()
+    return one_hot_arrays
+
+
+
+###################################################################
+# Models Definition
 ###################################################################
 
 
