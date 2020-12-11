@@ -8,9 +8,11 @@ import numpy as np
 import os
 import seaborn as sns
 from sklearn import preprocessing
-
-
-
+import torch
+import torch.nn as nn
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 
@@ -179,6 +181,7 @@ data.Minute = data['Time Bin'].apply(lambda x: int(x[3:]))
 # drop columns we won't use for prediction: 
 data = data.drop(['Year', 'location_latitude', 'location_longitude','Time Bin', 'Day'], axis=1)
 data = data.astype(str)
+data.Volume = data.Volume.astype(int)
 
 # map location names to letters (for simplification) 
 loc_letter, letter_loc = dict(), dict()
@@ -195,35 +198,127 @@ def onehot_batch(df):
     one_hot_arrays = one_hot_df.to_numpy()
     return one_hot_arrays
 
-
-
-###################################################################
-# Models Definition
-###################################################################
-
-
-
-
-
-
-
-
-
+data_OH = pd.get_dummies(data)
+train_frac = 0.01
+valid_frac = 0.01
+train, valid, test = np.split(data_OH.sample(frac=1, random_state=7), [int(train_frac*len(data_OH)), int((valid_frac+train_frac)*len(data_OH))]) # 60% train, 20% test and validation
 
 
 
 
 
 ###################################################################
-# 
+# Auxiliary Functions
 ###################################################################
 
+# RNN for Regression Neural Network:
+class RNN(nn.Module):
+    def __init__(self, n_l1, n_l2, n_l3, n_feature=67, ):
+        super(RNN, self).__init__()
+        self.l1 = nn.Linear(n_feature, n_l1)
+        self.l2 = nn.Linear(n_l1, n_l2)
+        self.l3 = nn.Linear(n_l2, n_l3)
+        self.output = nn.Linear(n_l3, 1)
+ 
+    def forward(self, x):
+        y = self.l1(x)
+        y = y.relu()
+        y = self.l2(y)
+        y = y.relu()
+        y = self.l3(y)
+        y = y.relu()
+        y = self.output(y)
+        return y
+
+
+# defin a training function, which returns training and validation loss lists
+def train_model(model, df_train, df_valid, learning_rate, batch_size, num_epochs):
+    # loss function (Mean Squared)  and optimizer (Adam):
+    loss = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    
+    train_batches = np.array_split(df_train, 1+ train.shape[0]//batch_size)
+    valid_batches = np.array_split(df_valid, 1+ valid.shape[0]//batch_size)
+    
+    train_loss, valid_loss = [], []
+    train_N, valid_N = (valid.shape[0],train.shape[0])
+    
+    for epoch in range(num_epochs):
+        
+        error_train, error_valid = 0,0
+        print("\n\n EPOCH ",epoch+1)
+        
+        print("    Training ...")
+        for batch in train_batches:
+            X, Y= batch.drop('Volume', axis=1).to_numpy(), batch.Volume.to_numpy()
+            X, Y= torch.tensor(X,dtype=torch.float32), torch.tensor(Y,dtype=torch.float32)
+            
+            # Initializing a gradient as 0 so there is no mixing of gradient among the batches
+            optimizer.zero_grad()
+            
+            # Forward pass 
+            outputs = model(X)
+            error = loss(outputs, Y)
+            error_train += error.item()*X.shape[0]
+            
+            #Propagating the error backward
+            error.backward()
+            
+            # Optimizing the parameters
+            optimizer.step()
+        
+        print("    Validation ...")
+        for batch2 in valid_batches:
+            X, Y= batch2.drop('Volume', axis=1).to_numpy(), batch2.Volume.to_numpy()
+            X, Y= torch.tensor(X,dtype=torch.float32), torch.tensor(Y,dtype=torch.float32)
+            
+            outputs = model(X)
+            error = loss(outputs, Y)
+            error_valid += error.item()*X.shape[0]
+        
+        train_loss.append(error_train/train_N)
+        valid_loss.append(error_valid/valid_N)
+        
+    return train_loss, valid_loss
+    
+
+# Define a plot function using the training and validation list, essential to keep an eye on under/overfitting
+def plot_graph(train_loss, valid_loss, num_epochs, num_model ):
+    epochs = list(range(1, num_epochs+1))
+    plt.figure(figsize=(10,10))
+    font = {'family' : 'DejaVu Sans',
+            'weight' : 'bold',
+            'size'   : 15}
+    matplotlib.rc('font', **font)
+    plt.plot(epochs, train_loss )
+    plt.plot(epochs, valid_loss)
+    plt.title('Model '+str(num_model)+' - train and validation loss plots')
+    plt.xlabel("Epochs")
+    plt.ylabel("MSE loss")
+    plt.legend(["Training", 'Validation'])
+    plt.savefig( 'Loss_plots/model_'+ str(num_model)+'_loss_plot.png') 
+    plt.show()
 
 
 
 
+###################################################################
+#  Model 1
+###################################################################
 
+# fix hyperparameters:
+n_l1, n_l2, n_l3 = 64*2, 32*2, 16*2
+learning_rate = 0.01
+batch_size = 16
+num_epochs = 5
+num_model = 1
 
+# intialize the model
+model_1 = RNN(n_l1, n_l2, n_l3)
+
+# train model and plot graph
+train_loss, valid_loss = train_model(model_1, train, valid, learning_rate, batch_size, num_epochs)
+plot_graph(train_loss, valid_loss, num_epochs, num_model )
 
 
 
