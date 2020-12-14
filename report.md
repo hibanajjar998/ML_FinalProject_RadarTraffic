@@ -163,6 +163,8 @@ If we had to select a model, it would rather be the second LSTM architecture. Of
 ## References
 
 [Medium: Regression with Neural Networks in PyTorch](https://medium.com/@benjamin.phillips22/simple-regression-with-neural-networks-in-pytorch-313f06910379)
+
 [Stack Abuse : Time Series Prediction using LSTM with PyTorch in Python](https://stackabuse.com/time-series-prediction-using-lstm-with-pytorch-in-python/)
+
 [Medium: PyTorch LSTMs for time series forecasting of Indian Stocks](https://medium.com/analytics-vidhya/pytorch-lstms-for-time-series-forecasting-of-indian-stocks-8a49157da8b9)
 
