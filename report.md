@@ -114,7 +114,7 @@ We tried making the one month-location models better by adding hidden units but 
   - In model 9 we disregard direction again but use all locations, and add more hidden units and train on more data; 
   - In model 10, we drop the direction and keep records of location A and month of January only, then train the model for 30 additional epochs.
 
- <img src="Figures/models_8_10.png" width=500 >
+ <img src="Figures/models_8_10.png" width=800 >
 
 
 The results are from our expectations. There are many issues with this section, namely the variability of the value we want to predict are high, it's better to standardize the Volume column before training, and Regression Neural Models may simply not be the best choice to predict traffic volume values, we couldn't even select a model out those we trained to evaluate it on the test set.
@@ -144,14 +144,14 @@ The model is crearly enable to generalize. We will increase the sliding window's
 
 The sliding window in the three models is now up to 40 elements. In model 3 we make the model more complex, and in model 4 we only add dropout to the second model.
 
-<img src="Figures/models_lstm_2_4.png" width=900 >
+<img src="Figures/models_lstm_2_4.png" width=1000 >
 
 Models 3 and 4 converge too fast, while model 2 doesn't generelize its learning to the validation set, despite the fact that records were  carefully shuffled.
 
 ### LSTM models 5-6
 In these two models we increase the sliding window to 100. The lr in model 5 is equal to 0.01 and in model 6 we set  lr=0.005.
 
-<img src="Figures/models_lstm_5_6.png" width=900 >
+<img src="Figures/models_lstm_5_6.png" width=1000 >
 
 Even with slower and longer learning, we can observe how the model doesn't improve much.
 
