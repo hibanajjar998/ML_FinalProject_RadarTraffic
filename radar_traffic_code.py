@@ -243,7 +243,6 @@ class RNN2(nn.Module):
         return y
 
 
-
 # defin a training function, which returns training and validation loss lists
 def train_model(model, df_train, df_valid, learning_rate, batch_size, num_epochs):
     # loss function (Mean Squared)  and optimizer (Adam):
@@ -330,10 +329,6 @@ def plot_graph(train_loss, valid_loss, num_epochs, num_model ):
 ###################################################################
 
 data_OH = pd.get_dummies(data)
-#train_frac = 0.025  # the equivalent of 100 000 records
-#valid_frac = 0.01
-#train, valid, test = np.split(data_OH.sample(frac=1, random_state=777), [int(train_frac*len(data_OH)), int((valid_frac+train_frac)*len(data_OH))]) # 60% train, 20% test and validation
-
 train, valid, test = np.split(data_OH.sample(frac=1, random_state=777), [100000, 200000]) # 60% train, 20% test and validation
 
 
@@ -365,11 +360,6 @@ plot_graph(train_loss, valid_loss, num_epochs, num_model )
 ###################################################################
 
 data_OH = pd.get_dummies(data)
-
-#train_frac = 0.025  # the equivalent of 100 000 records
-#valid_frac = 0.01
-#train, valid, test = np.split(data_OH.sample(frac=1, random_state=777), [int(train_frac*len(data_OH)), int((valid_frac+train_frac)*len(data_OH))]) # 60% train, 20% test and validation
-
 train, valid, test = np.split(data_OH.sample(frac=1, random_state=777), [100000, 200000]) # 60% train, 20% test and validation
 
 
@@ -404,6 +394,7 @@ plot_graph(train_loss_2, valid_loss_2, num_epochs, num_model )
 ###################################################################
 #  Model 3
 ###################################################################
+
 # keep location A and month of January
 subdata = data[ (data['Month']=='1') & (data['location_name']=='A')]
 subdata = subdata.drop(['Month', 'location_name'], axis=1)
@@ -429,14 +420,6 @@ train_loss_3, valid_loss_3 = train_model(model_3, train, valid, learning_rate, b
 
 
 plot_graph(train_loss_3, valid_loss_3, num_epochs, num_model )
-
-
-
-
-
-
-
-
 
 
 
@@ -484,6 +467,7 @@ plot_graph(train_loss_4, valid_loss_4, num_epochs, num_model )
 ###################################################################
 #  Model 5
 ###################################################################
+
 # keep only location F with a more complex NN
 subdata = data[  (data['location_name']=='F')]
 subdata = subdata.drop(['location_name'], axis=1)
@@ -522,6 +506,7 @@ plot_graph(train_loss_5, valid_loss_5, num_epochs, num_model )
 ###################################################################
 #  Model 6
 ###################################################################
+
 # keep only location F with a less complex NN
 subdata = data[  (data['location_name']=='F')]
 subdata = subdata.drop(['location_name'], axis=1)
@@ -564,6 +549,7 @@ plot_graph(train_loss_6, valid_loss_6, num_epochs, num_model )
 ###################################################################
 #  Model 7
 ###################################################################
+
 # keep only location F and Direction SB with a complex NN and 
 subdata = data[  (data['location_name']=='F') & (data['Direction']=='SB')]
 subdata = subdata.drop(['location_name', 'Direction'], axis=1)
@@ -604,6 +590,7 @@ plot_graph(train_loss_7, valid_loss_7, num_epochs, num_model )
 ###################################################################
 #  Model 8
 ###################################################################
+
 # trying a diferrent architecture, with 5 hidden layers
 
 subdata = data[  (data['location_name']=='F')]
@@ -641,7 +628,7 @@ plot_graph(train_loss_8, valid_loss_8, num_epochs, num_model )
 ###################################################################
 #  Model 9
 ###################################################################
-# drop direction variable and train with more records an dmore hidden units:
+# drop direction variable and train with more records and more hidden units:
 
 subdata = data.drop([ 'Direction'], axis=1)
 data_OH = pd.get_dummies(subdata)
@@ -680,6 +667,7 @@ plot_graph(train_loss_9, valid_loss_9, num_epochs, num_model )
 ###################################################################
 #  Model 10
 ###################################################################
+
 # drop direction variable and train with specific location, month and day of week:
 subdata = data[  (data['location_name']=='A') & (data['Month']=='1') ]#& (data['Day of Week']=='1') ]
 subdata = subdata.drop(['location_name', 'Direction', 'Month'], axis=1)
@@ -712,9 +700,13 @@ plot_graph(train_loss_10, valid_loss_10, num_epochs, num_model )
 
 ###################################################################
 ###################################################################
-###################################################################
+##
 ##  LSTM for Time Series
+##
 ###################################################################
+###################################################################
+
+
 
 
 data = pd.read_csv("Radar_Traffic_Counts.csv") 
@@ -746,29 +738,33 @@ data.location_name = data.location_name.apply(lambda x: loc_letter[x])
 
 
 
+
+
 ###################################################################
 ##  LSTM model: auxiliary functions
 ###################################################################
 
 class LSTM_TS(nn.Module):
-    def __init__(self, input_dim=1, hidden_layer_size=100, n_layers=1, output_fc_size=32, dropout=0.05):
+    def __init__(self, input_dim=1, hidden_layer_size=100, n_layers=1, hidden_fc_size=32, dropout=0.):
         super().__init__()
         self.hidden_layer_size = hidden_layer_size
+        self.n_layers = n_layers
 
         self.lstm = nn.LSTM(input_size=input_dim, hidden_size=hidden_layer_size, num_layers=n_layers, dropout=dropout, batch_first=True)
-        self.fc = nn.Linear(hidden_layer_size, output_fc_size)
-        self.bn = nn.BatchNorm1d(num_features = output_fc_size)        
+        self.fc = nn.Linear(hidden_layer_size, hidden_fc_size)
+        self.bn = nn.BatchNorm1d(num_features = hidden_fc_size)        
         self.act = nn.ReLU(inplace=True)
-        self.est = nn.Linear(output_fc_size, 1)
+        self.est = nn.Linear(hidden_fc_size, 1)
         
                 
     def forward(self, input_seq):
         batch_size = input_seq.shape[0]
-        hidden_cell = (torch.zeros(1,batch_size,self.hidden_layer_size),
-                            torch.zeros(1,batch_size,self.hidden_layer_size))
+        hidden_cell = (torch.zeros(self.n_layers,batch_size,self.hidden_layer_size),
+                            torch.zeros(self.n_layers,batch_size,self.hidden_layer_size))
         output , self.hidden_cell = self.lstm( input_seq, hidden_cell)
-        output = output.contiguous().view( -1, self.hidden_layer_size)
+        output = output.contiguous().view(-1, self.hidden_layer_size)
         output = self.est( self.act( self.bn( self.fc(output))))
+
         return output
 
 
@@ -787,14 +783,14 @@ def standarizeVolume(df):
     
 
 
-def split_time_serie(data, location_name, Direction, window_lenght=20):
+def split_time_serie(data, location_name, Direction, max_records = 50000, window_lenght=20):
     """ This function takes as input the dataframe of a specific (location_name, Direction)
         tuple, creates the corresponding time_serie, and aplly a sliding window
         of length "window_lenght" to generate inputs and and their labels for training
         and evaluating our data """
     
     subdata = data[ (data['location_name']==location_name) & (data['Direction']==Direction) ]
-    subdata = subdata.sort_values(['date_full']).iloc[:10000]  
+    subdata = subdata.sort_values(['date_full']).iloc[:max_records]  
     subdata = standarizeVolume(subdata)
     time_serie = list(subdata.Volume)
     X,Y = np.array([]), np.array([])
@@ -813,9 +809,14 @@ def split_time_serie(data, location_name, Direction, window_lenght=20):
 
 
 def data_split(X, Y, train_frac, valid_frac ):
+    np.random.seed(1)
+    np.random.shuffle(X)
+    np.random.seed(1)
+    np.random.shuffle(Y)
     train, valid, test = np.array_split(X, [int(train_frac*len(X)), int((train_frac+valid_frac)*len(X))])
     train_y, valid_y, test_y =np.array_split(Y, [int(train_frac*len(X)), int((train_frac+valid_frac)*len(X))])
     return train, valid, test, train_y, valid_y, test_y
+
 
 
 # defin a training function, which returns training and validation loss lists
@@ -831,6 +832,8 @@ def train_model_LSTM(model, train, valid, train_y, valid_y, learning_rate, batch
     X_valid_batches = np.array_split(valid, 1+ valid.shape[0]//batch_size)
     Y_valid_batches = np.array_split(valid_y, 1+ valid_y.shape[0]//batch_size)
     
+    N_train, N_valid = len(X_train_batches), len(X_valid_batches)
+    
     train_loss, valid_loss = [], []
     
     for epoch in range(num_epochs):
@@ -840,7 +843,10 @@ def train_model_LSTM(model, train, valid, train_y, valid_y, learning_rate, batch
         
         print("    Training ...")
         model.train()
+        i=0
         for X, Y in zip(X_train_batches, Y_train_batches):
+            i+=1
+            if i%15==0: print( 100*i//N_train, '%...', end=' ')
             X, Y= torch.tensor(X, dtype=torch.float32), torch.tensor(Y, dtype=torch.float32)
             X, Y= X.reshape(X.shape[0], -1, 1), Y.reshape(-1)
  
@@ -858,11 +864,14 @@ def train_model_LSTM(model, train, valid, train_y, valid_y, learning_rate, batch
             # Optimizing the parameters
             optimizer.step()
         
-        print("    Train loss = ", round(error_train, 2))
+        print("\n    Train loss = ", round(error_train/N_train, 2))
         
         print("    Validation ...")
+        i=0
         model.eval()
         for X, Y in zip(X_valid_batches, Y_valid_batches):
+            i+=1
+            if i%10==0: print( 100*i//N_valid, '%...', end=' ')
             X, Y= torch.tensor(X, dtype=torch.float32), torch.tensor(Y, dtype=torch.float32)
             X, Y= X.reshape(X.shape[0], -1, 1), Y.reshape(-1)
             
@@ -870,10 +879,10 @@ def train_model_LSTM(model, train, valid, train_y, valid_y, learning_rate, batch
             error = loss(outputs, Y)
             error_valid += error.item()
         
-        print("    Validation loss = ", round(error_valid, 2))
+        print("\n    Validation loss = ", round(error_valid/N_valid, 2))
         
-        train_loss.append(error_train)
-        valid_loss.append(error_valid)
+        train_loss.append(error_train/N_train)
+        valid_loss.append(error_valid/N_valid)
         
     return train_loss, valid_loss
 
@@ -888,11 +897,11 @@ def plot_graph_LSTM(train_loss, valid_loss, num_epochs, num_model ):
     matplotlib.rc('font', **font)
     plt.plot(epochs, train_loss )
     plt.plot(epochs, valid_loss)
-    plt.title('Model '+str(num_model)+' - train and validation loss plots')
+    plt.title('LSTM Model '+str(num_model)+' - train and validation loss plots')
     plt.xlabel("Epochs")
     plt.ylabel("MSE loss")
     plt.legend(["Training", 'Validation'])
-    plt.savefig( 'Loss_plots/model_LSTM_'+ str(num_model)+'_loss_plot.png') 
+    plt.savefig( 'Loss_plots/LSTM_'+ str(num_model)+'_loss_plot.png') 
     plt.show()
 
 
@@ -904,17 +913,19 @@ def plot_graph_LSTM(train_loss, valid_loss, num_epochs, num_model ):
 
 # prepare the data
 window_lenght = 20
-train_frac, valid_frac = 0.8, 0.1
-X, Y= split_time_serie(data, 'F', 'SB', window_lenght)
+max_records = 20000
+train_frac, valid_frac = 0.5, 0.3
+location_name, direction = 'F', 'SB'
+X, Y= split_time_serie(data, location_name, direction ,max_records, window_lenght)
 train, valid, test, train_y, valid_y, test_y = data_split(X, Y, train_frac, valid_frac )
 
 # define the model
 input_dim = 1
-hidden_layer_size = 100
-n_layers = 10
-output_fc_size = 32
-dropout = 0.05
-model_LSTM_1 = LSTM_TS(input_dim, hidden_layer_size=100, n_layers=1, output_fc_size=32, dropout=0.05)
+hidden_layer_size = 16
+n_layers = 2
+hidden_fc_size = 32
+dropout = 0.
+model_LSTM_1 = LSTM_TS(input_dim, hidden_layer_size, n_layers, hidden_fc_size, dropout)
 
 # train the model
 num_epochs = 30
@@ -927,6 +938,68 @@ plot_graph_LSTM(train_loss, valid_loss, num_epochs, 1 )
 
 
 
+###################################################################
+##  LSTM model: train model 2
+###################################################################
+
+# enlarge the time series sliding window length
+
+# prepare the data
+window_lenght = 40
+max_records = 20000
+train_frac, valid_frac = 0.5, 0.3
+location_name, direction = 'F', 'SB'
+X, Y= split_time_serie(data, location_name, direction ,max_records, window_lenght)
+train, valid, test, train_y, valid_y, test_y = data_split(X, Y, train_frac, valid_frac )
+
+# define the model
+input_dim = 1
+hidden_layer_size = 16
+n_layers = 2
+hidden_fc_size = 32
+dropout = 0.
+model_LSTM_2 = LSTM_TS(input_dim, hidden_layer_size, n_layers, hidden_fc_size, dropout)
+
+# train the model
+num_epochs = 30
+batch_size = 32
+learning_rate = 0.01
+train_loss, valid_loss = train_model_LSTM(model_LSTM_2, train, valid, train_y, valid_y, learning_rate, batch_size, num_epochs)
+plot_graph_LSTM(train_loss, valid_loss, num_epochs, 2 )
+
+
+
+
+
+
+###################################################################
+##  LSTM model: train model 3
+###################################################################
+
+# increase the hidden layer size 16--> 64 and n_layers from 2 to 5 and add dropout (5%)
+
+# prepare the data
+window_lenght = 40
+max_records = 20000
+train_frac, valid_frac = 0.5, 0.3
+location_name, direction = 'F', 'SB'
+X, Y= split_time_serie(data, location_name, direction ,max_records, window_lenght)
+train, valid, test, train_y, valid_y, test_y = data_split(X, Y, train_frac, valid_frac )
+
+# define the model
+input_dim = 1
+hidden_layer_size = 64
+n_layers = 5
+hidden_fc_size = 32
+dropout = 0.05
+model_LSTM_3 = LSTM_TS(input_dim, hidden_layer_size, n_layers, hidden_fc_size, dropout)
+
+# train the model
+num_epochs = 30
+batch_size = 32
+learning_rate = 0.01
+train_loss, valid_loss = train_model_LSTM(model_LSTM_3, train, valid, train_y, valid_y, learning_rate, batch_size, num_epochs)
+plot_graph_LSTM(train_loss, valid_loss, num_epochs, 3 )
 
 
 
@@ -934,12 +1007,97 @@ plot_graph_LSTM(train_loss, valid_loss, num_epochs, 1 )
 
 
 
+###################################################################
+##  LSTM model: train model 4
+###################################################################
+
+# go back to a less complex model, and add dropout
+
+# prepare the data
+window_lenght = 40
+max_records = 20000
+train_frac, valid_frac = 0.5, 0.3
+location_name, direction = 'F', 'SB'
+X, Y= split_time_serie(data, location_name, direction ,max_records, window_lenght)
+train, valid, test, train_y, valid_y, test_y = data_split(X, Y, train_frac, valid_frac )
+
+# define the model
+input_dim = 1
+hidden_layer_size = 16
+n_layers = 2
+hidden_fc_size = 32
+dropout = 0.1
+model_LSTM_4 = LSTM_TS(input_dim, hidden_layer_size, n_layers, hidden_fc_size, dropout)
+
+# train the model
+num_epochs = 30
+batch_size = 32
+learning_rate = 0.01
+train_loss, valid_loss = train_model_LSTM(model_LSTM_4, train, valid, train_y, valid_y, learning_rate, batch_size, num_epochs)
+plot_graph_LSTM(train_loss, valid_loss, num_epochs, 4 )
 
 
 
 
 
-b = torch.tensor([[0, 1], [2, 3], [6, 7]])
-b
-torch.reshape(b, (2,-1))
-b.view( (2,-1))
+###################################################################
+##  LSTM model: train model 5
+###################################################################
+
+# go back to a less complex model, and enlarge the sliding window
+
+# prepare the data
+window_lenght = 100
+max_records = 20000
+train_frac, valid_frac = 0.5, 0.3
+location_name, direction = 'F', 'SB'
+X, Y= split_time_serie(data, location_name, direction ,max_records, window_lenght)
+train, valid, test, train_y, valid_y, test_y = data_split(X, Y, train_frac, valid_frac )
+
+# define the model
+input_dim = 1
+hidden_layer_size = 16
+n_layers = 2
+hidden_fc_size = 32
+dropout = 0.1
+model_LSTM_5 = LSTM_TS(input_dim, hidden_layer_size, n_layers, hidden_fc_size, dropout)
+
+# train the model
+num_epochs = 30
+batch_size = 32
+learning_rate = 0.01
+train_loss, valid_loss = train_model_LSTM(model_LSTM_5, train, valid, train_y, valid_y, learning_rate, batch_size, num_epochs)
+plot_graph_LSTM(train_loss, valid_loss, num_epochs, 5 )
+
+
+
+###################################################################
+##  LSTM model: train model 6
+###################################################################
+
+# go back to a less complex model, and enlarge the sliding window and narrow down the lr
+
+# prepare the data
+window_lenght = 100
+max_records = 20000
+train_frac, valid_frac = 0.5, 0.3
+location_name, direction = 'F', 'SB'
+X, Y= split_time_serie(data, location_name, direction ,max_records, window_lenght)
+train, valid, test, train_y, valid_y, test_y = data_split(X, Y, train_frac, valid_frac )
+
+# define the model
+input_dim = 1
+hidden_layer_size = 16
+n_layers = 2
+hidden_fc_size = 32
+dropout = 0.1
+model_LSTM_6 = LSTM_TS(input_dim, hidden_layer_size, n_layers, hidden_fc_size, dropout)
+
+# train the model
+num_epochs = 60
+batch_size = 32
+learning_rate = 0.005
+train_loss, valid_loss = train_model_LSTM(model_LSTM_6, train, valid, train_y, valid_y, learning_rate, batch_size, num_epochs)
+plot_graph_LSTM(train_loss, valid_loss, num_epochs, '6-60epochs' )
+
+
