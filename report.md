@@ -92,11 +92,11 @@ The main hypermarameters are the number of units in each hidden layer `i`: `n_li
  - learning_rate = 0.01 
  - data : January records of 
  
-<img src="Figures/model_3_loss_plot.png" width=500 >
+<img src="Loss_plots/model_3_loss_plot.png" width=500 >
 
 **Interpretation**:  The model enter overfitting around 15 epochs, we will bring back the month variable since to have a more fournished imput data, change the location to **F** = *100 BLK S CONGRESS AVE (Congress Bridge)* and add complexity to the model.
 
-### RNN models 4-7:
+### RNN models 4-5-6-7:
 We tried making the one month-location models better by adding hidden units but in vain, thats why in models 4-7 we turn back to using records from different months, but for the specific F location: 
 
  - change the location : model 4
@@ -104,11 +104,11 @@ We tried making the one month-location models better by adding hidden units but 
  - go back to split to half the number of units in model 4: model 6
  - use records from a specific direction only: model 7
 
- <img src="Figures/models_4_7.png" width=500 >
+ <img src="Figures/models_4_7.png" width=800 >
 
 **Interpretation**:  None of the models are satisfying, nor is it easy to interpret the results (scaling problem). In the following, we will modify the class function of the model to `RNN2` which has an additional hidden layer.
 
-### RNN2 models
+### RNN2 models 8-9-10
 
  - In model 8, we disrgard the direction and keep records of location F only; 
   - In model 9 we disregard direction again but use all locations, and add more hidden units and train on more data; 
@@ -144,14 +144,14 @@ The model is crearly enable to generalize. We will increase the sliding window's
 
 The sliding window in the three models is now up to 40 elements. In model 3 we make the model more complex, and in model 4 we only add dropout to the second model.
 
-<img src="Loss_plots/model_2_loss_plot.png" width=500 >
+<img src="Figures/models_lstm_2_4.png" width=900 >
 
 Models 3 and 4 converge too fast, while model 2 doesn't generelize its learning to the validation set, despite the fact that records were  carefully shuffled.
 
 ### LSTM models 5-6
 In these two models we increase the sliding window to 100. The lr in model 5 is equal to 0.01 and in model 6 we set  lr=0.005.
 
-<img src="Figures/models_lstm_5_6.png" width=500 >
+<img src="Figures/models_lstm_5_6.png" width=900 >
 
 Even with slower and longer learning, we can observe how the model doesn't improve much.
 
